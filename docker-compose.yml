@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # ── Backend API ──
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: eduvid-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - video-data:/app/generated_videos
+      - upload-data:/app/uploads
+    environment:
+      - SECRET_KEY=hackathon-eduvid-secret-2024
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - OLLAMA_MODEL=mistral
+    restart: unless-stopped
+    networks:
+      - eduvid-net
+
+  # ── Frontend ──
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: eduvid-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - eduvid-net
+
+volumes:
+  video-data:
+  upload-data:
+
+networks:
+  eduvid-net:
+    driver: bridge
