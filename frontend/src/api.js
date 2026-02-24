@@ -65,4 +65,14 @@ export const documentAPI = {
     api.post(`/api/documents/${docId}/generate-video?question_index=${questionIndex}`),
 };
 
+// Practical Learning Mode API
+export const practicalAPI = {
+  getObjectFeatures: (object_name) =>
+    api.post('/api/practical/object-features', { object_name }),
+  getQuiz: (object_name) =>
+    api.post('/api/practical/quiz', { object_name }),
+  checkAnswer: (object_name, selected_index) =>
+    api.post('/api/practical/check-answer', { object_name, selected_index }),
+};
+
 export default api;

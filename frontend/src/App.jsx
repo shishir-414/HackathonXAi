@@ -8,11 +8,18 @@ import GeneratePage from './pages/GeneratePage';
 import UploadPage from './pages/UploadPage';
 import VideoFeed from './pages/VideoFeed';
 import MyVideos from './pages/MyVideos';
+import PracticalPage from './pages/PracticalPage';
 import Navbar from './components/Navbar';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuthStore();
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return children;
+}
+
+function GradeGatedRoute({ children, maxGrade }) {
+  const { user } = useAuthStore();
+  if (user?.grade == null || user.grade > maxGrade) return <Navigate to="/" replace />;
   return children;
 }
 
@@ -83,6 +90,16 @@ export default function App() {
                 <Navbar />
                 <main className="flex-1">
                   <MyVideos />
+                </main>
+              </div>
+            </ProtectedRoute>
+          } />
+          <Route path="/practical" element={
+            <ProtectedRoute>
+              <div className="flex flex-col min-h-screen">
+                <Navbar />
+                <main className="flex-1">
+                  <PracticalPage />
                 </main>
               </div>
             </ProtectedRoute>

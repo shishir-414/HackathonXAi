@@ -1,65 +1,326 @@
-import { Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store';
-import { FiHome, FiVideo, FiUpload, FiPlay, FiLogOut, FiUser } from 'react-icons/fi';
+
+import {
+  AppBar,
+  Toolbar,
+  Box,
+  Button,
+  IconButton,
+  Typography,
+  Avatar,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  Stack,
+  Chip,
+  Tooltip,
+  useTheme,
+  alpha,
+  useMediaQuery,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+} from '@mui/material';
+
+import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
+import CameraAltOutlinedIcon from '@mui/icons-material/CameraAltOutlined';
+import VideoLibraryOutlinedIcon from '@mui/icons-material/VideoLibraryOutlined';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
+import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded';
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 
 export default function Navbar() {
   const { user, logout } = useAuthStore();
   const location = useLocation();
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const menuOpen = Boolean(anchorEl);
 
   const links = [
-    { to: '/', label: 'Home', icon: FiHome },
-    { to: '/generate', label: 'Generate', icon: FiVideo },
-    { to: '/upload', label: 'Upload', icon: FiUpload },
-    { to: '/feed', label: 'Feed', icon: FiPlay },
-    { to: '/my-videos', label: 'My Videos', icon: FiVideo },
+    { to: '/', label: 'Home', icon: <HomeRoundedIcon sx={{ fontSize: 20 }} /> },
+    { to: '/generate', label: 'Generate', icon: <AutoAwesomeIcon sx={{ fontSize: 20 }} /> },
+    { to: '/upload', label: 'Upload', icon: <CloudUploadOutlinedIcon sx={{ fontSize: 20 }} /> },
+    { to: '/practical', label: 'Practical', icon: <CameraAltOutlinedIcon sx={{ fontSize: 20 }} /> },
+    { to: '/my-videos', label: 'My Videos', icon: <VideoLibraryOutlinedIcon sx={{ fontSize: 20 }} /> },
   ];
 
+  const handleLogout = () => {
+    setAnchorEl(null);
+    logout();
+    navigate('/login');
+  };
+
   return (
-    <nav className="sticky top-0 z-50 bg-dark-950/90 backdrop-blur-xl border-b border-dark-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16">
+    <>
+      <AppBar position="sticky" elevation={0}>
+        <Toolbar sx={{ maxWidth: 1280, mx: 'auto', width: '100%', px: { xs: 1.5, sm: 3 } }}>
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-purple-500 flex items-center justify-center text-sm font-bold">
+          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Avatar
+              sx={{
+                width: 36,
+                height: 36,
+                background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                fontWeight: 800,
+                fontSize: '0.9rem',
+                borderRadius: 2,
+              }}
+            >
               E
-            </div>
-            <span className="font-bold text-lg gradient-text hidden sm:block">EduVid AI</span>
+            </Avatar>
+            {!isMobile && (
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 800,
+                  background: 'linear-gradient(135deg, #818cf8, #c084fc)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                EduVid AI
+              </Typography>
+            )}
           </Link>
 
-          {/* Nav links */}
-          <div className="flex items-center gap-1">
-            {links.map(({ to, label, icon: Icon }) => (
-              <Link
-                key={to}
-                to={to}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  location.pathname === to
-                    ? 'bg-primary-600/20 text-primary-400'
-                    : 'text-dark-400 hover:text-white hover:bg-dark-800'
-                }`}
-              >
-                <Icon size={16} />
-                <span className="hidden md:block">{label}</span>
-              </Link>
-            ))}
-          </div>
+          <Box sx={{ flexGrow: 1 }} />
 
-          {/* User menu */}
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 text-sm text-dark-400">
-              <FiUser size={14} />
-              <span>{user?.username}</span>
-            </div>
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-dark-400 hover:text-red-400 hover:bg-dark-800 transition-all"
+          {/* Desktop Nav Links */}
+          {!isMobile && (
+            <Stack direction="row" spacing={0.5} sx={{ mr: 2 }}>
+              {links.map(({ to, label, icon }) => {
+                const isActive = location.pathname === to;
+                return (
+                  <Button
+                    key={to}
+                    component={Link}
+                    to={to}
+                    startIcon={icon}
+                    size="small"
+                    sx={{
+                      borderRadius: 2.5,
+                      px: 2,
+                      py: 0.8,
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      color: isActive ? 'primary.main' : 'text.secondary',
+                      bgcolor: isActive ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+                      border: isActive
+                        ? `1px solid ${alpha(theme.palette.primary.main, 0.2)}`
+                        : '1px solid transparent',
+                      '&:hover': {
+                        bgcolor: isActive
+                          ? alpha(theme.palette.primary.main, 0.15)
+                          : alpha(theme.palette.text.primary, 0.05),
+                        color: isActive ? 'primary.main' : 'text.primary',
+                      },
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    {label}
+                  </Button>
+                );
+              })}
+            </Stack>
+          )}
+
+          {/* User Avatar + Menu */}
+          <Tooltip title={user?.username || 'Account'}>
+            <IconButton
+              onClick={(e) => setAnchorEl(e.currentTarget)}
+              sx={{
+                p: 0.5,
+                border: `2px solid ${menuOpen ? theme.palette.primary.main : 'transparent'}`,
+                borderRadius: 2.5,
+                transition: 'border-color 0.2s',
+              }}
             >
-              <FiLogOut size={16} />
-              <span className="hidden sm:block">Logout</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </nav>
+              <Avatar
+                sx={{
+                  width: 34,
+                  height: 34,
+                  background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                }}
+              >
+                {(user?.full_name || user?.username || 'U').charAt(0).toUpperCase()}
+              </Avatar>
+            </IconButton>
+          </Tooltip>
+
+          <Menu
+            anchorEl={anchorEl}
+            open={menuOpen}
+            onClose={() => setAnchorEl(null)}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            slotProps={{
+              paper: {
+                sx: {
+                  mt: 1,
+                  minWidth: 220,
+                  bgcolor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 3,
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.4)',
+                },
+              },
+            }}
+          >
+            <Box sx={{ px: 2.5, py: 2 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                {user?.full_name || user?.username}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {user?.email}
+              </Typography>
+              {user?.grade && (
+                <Chip
+                  icon={<SchoolRoundedIcon sx={{ fontSize: 14 }} />}
+                  label={`Grade ${user.grade}`}
+                  size="small"
+                  sx={{
+                    mt: 1,
+                    display: 'flex',
+                    width: 'fit-content',
+                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    color: 'primary.light',
+                    fontWeight: 600,
+                    fontSize: '0.7rem',
+                    height: 24,
+                  }}
+                />
+              )}
+            </Box>
+            <Divider sx={{ borderColor: 'divider' }} />
+            <MenuItem
+              onClick={() => { setAnchorEl(null); }}
+              sx={{ py: 1.5, px: 2.5 }}
+            >
+              <ListItemIcon>
+                <PersonOutlineRoundedIcon sx={{ fontSize: 20 }} />
+              </ListItemIcon>
+              <ListItemText
+                primary="Profile"
+                primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
+              />
+            </MenuItem>
+            <MenuItem
+              onClick={handleLogout}
+              sx={{
+                py: 1.5,
+                px: 2.5,
+                color: 'error.main',
+                '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.08) },
+              }}
+            >
+              <ListItemIcon>
+                <LogoutRoundedIcon sx={{ fontSize: 20, color: 'error.main' }} />
+              </ListItemIcon>
+              <ListItemText
+                primary="Logout"
+                primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
+              />
+            </MenuItem>
+          </Menu>
+
+          {/* Mobile hamburger */}
+          {isMobile && (
+            <IconButton
+              onClick={() => setMobileOpen(true)}
+              sx={{ ml: 1, color: 'text.secondary' }}
+            >
+              <MenuRoundedIcon />
+            </IconButton>
+          )}
+        </Toolbar>
+      </AppBar>
+
+      {/* Mobile Drawer */}
+      <Drawer
+        anchor="right"
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        PaperProps={{
+          sx: {
+            width: 280,
+            bgcolor: 'background.default',
+            borderLeft: '1px solid',
+            borderColor: 'divider',
+          },
+        }}
+      >
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+            Menu
+          </Typography>
+          <IconButton onClick={() => setMobileOpen(false)} size="small">
+            <CloseRoundedIcon />
+          </IconButton>
+        </Box>
+        <Divider sx={{ borderColor: 'divider' }} />
+        <List sx={{ px: 1, pt: 1 }}>
+          {links.map(({ to, label, icon }) => {
+            const isActive = location.pathname === to;
+            return (
+              <ListItem key={to} disablePadding sx={{ mb: 0.5 }}>
+                <ListItemButton
+                  component={Link}
+                  to={to}
+                  onClick={() => setMobileOpen(false)}
+                  sx={{
+                    borderRadius: 2.5,
+                    py: 1.5,
+                    bgcolor: isActive ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+                    color: isActive ? 'primary.main' : 'text.secondary',
+                    '&:hover': {
+                      bgcolor: alpha(theme.palette.primary.main, 0.08),
+                    },
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 36, color: 'inherit' }}>
+                    {icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={label}
+                    primaryTypographyProps={{ fontWeight: isActive ? 700 : 500, fontSize: '0.9rem' }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
+        </List>
+        <Box sx={{ flexGrow: 1 }} />
+        <Divider sx={{ borderColor: 'divider' }} />
+        <Box sx={{ p: 2 }}>
+          <Button
+            fullWidth
+            variant="outlined"
+            color="error"
+            startIcon={<LogoutRoundedIcon />}
+            onClick={() => { setMobileOpen(false); handleLogout(); }}
+            sx={{ borderRadius: 2.5 }}
+          >
+            Logout
+          </Button>
+        </Box>
+      </Drawer>
+    </>
   );
 }

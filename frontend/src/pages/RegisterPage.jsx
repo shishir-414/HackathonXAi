@@ -110,7 +110,7 @@ export default function RegisterPage() {
                   onChange={(e) => setForm({ ...form, grade: e.target.value })}
                 >
                   <option value="">Grade</option>
-                  {[5, 6, 7, 8, 9, 10].map((g) => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((g) => (
                     <option key={g} value={g}>Grade {g}</option>
                   ))}
                 </select>

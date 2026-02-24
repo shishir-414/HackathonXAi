@@ -12,6 +12,7 @@ from app.config import settings
 from app.routes import router as auth_router
 from app.routes.videos import router as video_router
 from app.routes.documents import router as document_router
+from app.routes.practical import router as practical_router
 
 # Configure logging
 logging.basicConfig(
@@ -41,6 +42,7 @@ app.mount("/static/videos", StaticFiles(directory=settings.VIDEO_DIR), name="vid
 app.include_router(auth_router)
 app.include_router(video_router)
 app.include_router(document_router)
+app.include_router(practical_router)
 
 
 @app.get("/")
