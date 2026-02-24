@@ -424,7 +424,7 @@ def _assemble_kenburns(
             "-loop", "1", "-i", fp,
             "-vf", f"zoompan={effect}:d={d_frames}:s={width}x{height}:fps={fps}",
             "-t", f"{clip_dur:.2f}",
-            "-c:v", "libopenh264", "-b:v", "1500k",
+            "-c:v", "libx264", "-b:v", "1500k",
             "-pix_fmt", "yuv420p", "-an",
             clip,
         ]
@@ -513,7 +513,7 @@ def _xfade_chain(clip_paths, fade_dur, temp_dir, video_id):
             "-filter_complex",
             f"[0:v][1:v]xfade=transition={transition}:duration={fade_dur:.2f}:offset={offset:.2f},format=yuv420p[v]",
             "-map", "[v]",
-            "-c:v", "libopenh264", "-b:v", "1500k",
+            "-c:v", "libx264", "-b:v", "1500k",
             "-movflags", "+faststart", "-an",
             output,
         ]
@@ -541,7 +541,7 @@ def _assemble_simple(
     cmd = ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_file]
     if has_audio:
         cmd += ["-i", audio_path]
-    cmd += ["-c:v", "libopenh264", "-b:v", "1500k", "-pix_fmt", "yuv420p",
+    cmd += ["-c:v", "libx264", "-b:v", "1500k", "-pix_fmt", "yuv420p",
             "-r", str(fps)]
     if has_audio:
         cmd += ["-c:a", "aac", "-b:a", "128k", "-shortest"]
@@ -569,7 +569,7 @@ def _burn_subtitles(input_path: str, srt_path: str, output_path: str):
     cmd = [
         "ffmpeg", "-y", "-i", input_path,
         "-vf", f"subtitles={srt_esc}:force_style='{style}'",
-        "-c:a", "copy", "-c:v", "libopenh264", "-b:v", "1500k",
+        "-c:a", "copy", "-c:v", "libx264", "-b:v", "1500k",
         output_path,
     ]
     try:
