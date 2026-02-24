@@ -3,7 +3,30 @@ import { useDropzone } from 'react-dropzone';
 import { documentAPI, videoAPI } from '../api';
 import { useVideoStore } from '../store';
 import toast from 'react-hot-toast';
-import { FiUploadCloud, FiFile, FiLoader, FiCheck, FiVideo, FiChevronRight } from 'react-icons/fi';
+
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Avatar,
+  Grid,
+  CircularProgress,
+  IconButton,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Chip,
+  alpha,
+  useTheme,
+} from '@mui/material';
+import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded';
+import InsertDriveFileRoundedIcon from '@mui/icons-material/InsertDriveFileRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
+import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
 
 export default function UploadPage() {
   const [documents, setDocuments] = useState([]);
@@ -13,6 +36,7 @@ export default function UploadPage() {
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [generatingIdx, setGeneratingIdx] = useState(null);
   const { addVideo } = useVideoStore();
+  const theme = useTheme();
 
   const onDrop = useCallback(async (acceptedFiles) => {
     if (acceptedFiles.length === 0) return;
@@ -39,7 +63,7 @@ export default function UploadPage() {
       'text/plain': ['.txt'],
     },
     maxFiles: 5,
-    maxSize: 10 * 1024 * 1024, // 10MB
+    maxSize: 10 * 1024 * 1024,
   });
 
   const loadQuestions = async (doc) => {
@@ -47,7 +71,6 @@ export default function UploadPage() {
     setQuestionsLoading(true);
     setQuestions([]);
 
-    // Poll for questions
     const maxAttempts = 20;
     for (let i = 0; i < maxAttempts; i++) {
       try {
@@ -57,7 +80,6 @@ export default function UploadPage() {
           setQuestionsLoading(false);
           return;
         }
-        // Wait 2 seconds before polling again
         await new Promise((r) => setTimeout(r, 2000));
       } catch (err) {
         break;
@@ -96,134 +118,215 @@ export default function UploadPage() {
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <Box sx={{ maxWidth: 960, mx: 'auto', px: { xs: 2, sm: 3 }, py: 4 }}>
       {/* Header */}
-      <div className="text-center mb-10">
-        <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-2xl mb-4">
-          <FiUploadCloud size={28} className="text-white" />
-        </div>
-        <h1 className="text-3xl font-bold mb-2">Upload Notes</h1>
-        <p className="text-dark-400">Upload your study materials and we'll generate Q&A videos</p>
-      </div>
+      <Box sx={{ textAlign: 'center', mb: 5 }}>
+        <Avatar
+          sx={{
+            width: 64,
+            height: 64,
+            mx: 'auto',
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #22c55e, #10b981)',
+            mb: 2,
+          }}
+        >
+          <CloudUploadRoundedIcon sx={{ fontSize: 28, color: 'white' }} />
+        </Avatar>
+        <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
+          Upload Notes
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          Upload your study materials and we'll generate Q&A videos
+        </Typography>
+      </Box>
 
-      {/* Upload Zone */}
-      <div
+      {/* Dropzone */}
+      <Card
         {...getRootProps()}
-        className={`card mb-8 cursor-pointer transition-all duration-300 text-center py-12
-          ${isDragActive
-            ? 'border-primary-500 bg-primary-500/5 border-dashed border-2'
-            : 'border-dashed border-2 border-dark-700 hover:border-primary-500/50'
-          }`}
+        sx={{
+          mb: 4,
+          cursor: 'pointer',
+          textAlign: 'center',
+          py: 6,
+          border: '2px dashed',
+          borderColor: isDragActive
+            ? 'primary.main'
+            : alpha(theme.palette.text.primary, 0.12),
+          bgcolor: isDragActive
+            ? alpha(theme.palette.primary.main, 0.04)
+            : 'transparent',
+          transition: 'all 0.3s',
+          '&:hover': {
+            borderColor: alpha(theme.palette.primary.main, 0.5),
+          },
+        }}
       >
         <input {...getInputProps()} />
-        {uploading ? (
-          <div className="flex flex-col items-center gap-3">
-            <FiLoader size={40} className="text-primary-400 animate-spin" />
-            <p className="text-dark-300">Uploading...</p>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-3">
-            <FiUploadCloud size={48} className={isDragActive ? 'text-primary-400' : 'text-dark-500'} />
-            <div>
-              <p className="text-lg font-medium">
+        <CardContent>
+          {uploading ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
+              <CircularProgress size={40} />
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                Uploading...
+              </Typography>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
+              <CloudUploadRoundedIcon
+                sx={{
+                  fontSize: 48,
+                  color: isDragActive ? 'primary.main' : 'text.disabled',
+                }}
+              />
+              <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
                 {isDragActive ? 'Drop files here' : 'Drag & drop files here'}
-              </p>
-              <p className="text-sm text-dark-500 mt-1">
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.disabled' }}>
                 or click to browse — PDF, DOCX, TXT (max 10MB)
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
+              </Typography>
+            </Box>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Two column layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <Grid container spacing={3}>
         {/* Document List */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Your Documents</h3>
+        <Grid item xs={12} md={6}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            Your Documents
+          </Typography>
           {documents.length === 0 ? (
-            <div className="card text-center py-8">
-              <FiFile size={32} className="mx-auto text-dark-600 mb-2" />
-              <p className="text-sm text-dark-500">No documents yet</p>
-            </div>
+            <Card sx={{ textAlign: 'center', py: 4 }}>
+              <InsertDriveFileRoundedIcon sx={{ fontSize: 32, color: 'text.disabled', mb: 1 }} />
+              <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+                No documents yet
+              </Typography>
+            </Card>
           ) : (
-            <div className="space-y-3">
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               {documents.map((doc) => (
-                <button
+                <Card
                   key={doc.id}
                   onClick={() => loadQuestions(doc)}
-                  className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${
-                    selectedDoc?.id === doc.id
-                      ? 'bg-primary-600/10 border-primary-500/30'
-                      : 'bg-dark-900 border-dark-800 hover:border-dark-600'
-                  }`}
+                  sx={{
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    borderColor: selectedDoc?.id === doc.id
+                      ? alpha(theme.palette.primary.main, 0.3)
+                      : 'transparent',
+                    bgcolor: selectedDoc?.id === doc.id
+                      ? alpha(theme.palette.primary.main, 0.06)
+                      : undefined,
+                    '&:hover': { borderColor: alpha(theme.palette.text.primary, 0.15) },
+                  }}
                 >
-                  <div className="w-10 h-10 rounded-lg bg-dark-800 flex items-center justify-center flex-shrink-0">
-                    <FiFile size={18} className="text-dark-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{doc.filename}</p>
-                    <p className="text-xs text-dark-500 mt-0.5">
-                      {doc.processed ? (
-                        <span className="text-green-400 flex items-center gap-1">
-                          <FiCheck size={12} /> Processed
-                        </span>
-                      ) : (
-                        <span className="text-yellow-400">Processing...</span>
-                      )}
-                    </p>
-                  </div>
-                  <FiChevronRight size={16} className="text-dark-500" />
-                </button>
+                  <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 2, '&:last-child': { pb: 2 } }}>
+                    <Avatar
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 2,
+                        bgcolor: alpha(theme.palette.text.primary, 0.06),
+                      }}
+                    >
+                      <InsertDriveFileRoundedIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                    </Avatar>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }} noWrap>
+                        {doc.filename}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: doc.processed ? 'success.main' : 'warning.main' }}>
+                        {doc.processed ? (
+                          <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <CheckCircleRoundedIcon sx={{ fontSize: 12 }} /> Processed
+                          </Box>
+                        ) : (
+                          'Processing...'
+                        )}
+                      </Typography>
+                    </Box>
+                    <ChevronRightRoundedIcon sx={{ fontSize: 16, color: 'text.disabled' }} />
+                  </CardContent>
+                </Card>
               ))}
-            </div>
+            </Box>
           )}
-        </div>
+        </Grid>
 
         {/* Questions Panel */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Extracted Questions</h3>
+        <Grid item xs={12} md={6}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            Extracted Questions
+          </Typography>
           {!selectedDoc ? (
-            <div className="card text-center py-8">
-              <p className="text-sm text-dark-500">Select a document to see extracted questions</p>
-            </div>
+            <Card sx={{ textAlign: 'center', py: 4 }}>
+              <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+                Select a document to see extracted questions
+              </Typography>
+            </Card>
           ) : questionsLoading ? (
-            <div className="card text-center py-8">
-              <FiLoader size={32} className="mx-auto text-primary-400 animate-spin mb-3" />
-              <p className="text-sm text-dark-400">Extracting questions...</p>
-            </div>
+            <Card sx={{ textAlign: 'center', py: 4 }}>
+              <CircularProgress size={32} sx={{ mb: 1.5 }} />
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                Extracting questions...
+              </Typography>
+            </Card>
           ) : questions.length === 0 ? (
-            <div className="card text-center py-8">
-              <p className="text-sm text-dark-500">No questions extracted yet</p>
-            </div>
+            <Card sx={{ textAlign: 'center', py: 4 }}>
+              <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+                No questions extracted yet
+              </Typography>
+            </Card>
           ) : (
-            <div className="space-y-3">
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               {questions.map((q, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-3 p-4 bg-dark-900 border border-dark-800 rounded-xl"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-primary-600/20 flex items-center justify-center text-sm font-bold text-primary-400 flex-shrink-0">
-                    {idx + 1}
-                  </div>
-                  <p className="flex-1 text-sm text-dark-300">{q}</p>
-                  <button
-                    onClick={() => generateVideoFromQuestion(idx)}
-                    disabled={generatingIdx === idx}
-                    className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary-600 hover:bg-primary-700 disabled:bg-dark-700 flex items-center justify-center transition-all"
-                  >
-                    {generatingIdx === idx ? (
-                      <FiLoader size={16} className="animate-spin" />
-                    ) : (
-                      <FiVideo size={16} />
-                    )}
-                  </button>
-                </div>
+                <Card key={idx}>
+                  <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 2, '&:last-child': { pb: 2 } }}>
+                    <Avatar
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 2,
+                        bgcolor: alpha(theme.palette.primary.main, 0.12),
+                        color: 'primary.main',
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {idx + 1}
+                    </Avatar>
+                    <Typography variant="body2" sx={{ flex: 1, color: 'text.secondary' }}>
+                      {q}
+                    </Typography>
+                    <IconButton
+                      onClick={() => generateVideoFromQuestion(idx)}
+                      disabled={generatingIdx === idx}
+                      size="small"
+                      sx={{
+                        bgcolor: 'primary.main',
+                        color: 'white',
+                        width: 36,
+                        height: 36,
+                        borderRadius: 2,
+                        '&:hover': { bgcolor: 'primary.dark' },
+                        '&.Mui-disabled': { bgcolor: alpha(theme.palette.text.primary, 0.08) },
+                      }}
+                    >
+                      {generatingIdx === idx ? (
+                        <CircularProgress size={16} color="inherit" />
+                      ) : (
+                        <VideocamRoundedIcon sx={{ fontSize: 16 }} />
+                      )}
+                    </IconButton>
+                  </CardContent>
+                </Card>
               ))}
-            </div>
+            </Box>
           )}
-        </div>
-      </div>
-    </div>
+        </Grid>
+      </Grid>
+    </Box>
   );
 }

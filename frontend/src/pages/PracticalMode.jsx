@@ -1,6 +1,25 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { FiCamera, FiX, FiZap, FiHelpCircle, FiLoader, FiAlertCircle, FiChevronRight, FiBookOpen } from 'react-icons/fi';
 import { practicalAPI } from '../api';
+
+import {
+  Box,
+  Typography,
+  Button,
+  IconButton,
+  Avatar,
+  CircularProgress,
+  Card,
+  CardContent,
+  Collapse,
+  alpha,
+} from '@mui/material';
+import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
+import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
+import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
+import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
+import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
 
 const MIN_CONFIDENCE = 0.55;
 const DETECT_INTERVAL = 800;
@@ -108,7 +127,6 @@ export default function PracticalMode({ onClose }) {
         setDetectedObjects(filtered);
         drawBoxes(filtered);
 
-        // Auto-fetch features for the highest-confidence new object
         if (filtered.length > 0) {
           const best = filtered.reduce((a, b) => a.score > b.score ? a : b);
           if (best.class !== activeObject) {
@@ -140,12 +158,10 @@ export default function PracticalMode({ onClose }) {
       const [x, y, w, h] = obj.bbox;
       const isActive = obj.class === activeObject;
 
-      // Box
       ctx.strokeStyle = isActive ? '#22d3ee' : '#a5f3fc';
       ctx.lineWidth = isActive ? 3 : 2;
       ctx.strokeRect(x, y, w, h);
 
-      // Corner brackets for active
       if (isActive) {
         const cl = Math.min(20, w * 0.2, h * 0.2);
         ctx.lineWidth = 4;
@@ -156,7 +172,6 @@ export default function PracticalMode({ onClose }) {
         ctx.beginPath(); ctx.moveTo(x + w - cl, y + h); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y + h - cl); ctx.stroke();
       }
 
-      // Label
       const label = obj.class + ' ' + Math.round(obj.score * 100) + '%';
       ctx.font = 'bold 13px Inter, system-ui, sans-serif';
       const tw = ctx.measureText(label).width + 12;
@@ -167,7 +182,6 @@ export default function PracticalMode({ onClose }) {
     });
   }, [activeObject]);
 
-  // Fetch features for an object
   const fetchFeatures = async (objectClass) => {
     setLoadingFeatures(true);
     setActiveObject(objectClass);
@@ -190,7 +204,6 @@ export default function PracticalMode({ onClose }) {
     }
   };
 
-  // Load quiz for current object
   const loadQuiz = async () => {
     if (!activeObject) return;
     try {
@@ -203,7 +216,6 @@ export default function PracticalMode({ onClose }) {
     }
   };
 
-  // Check quiz answer
   const submitAnswer = async (index) => {
     if (!activeObject) return;
     try {
@@ -222,222 +234,488 @@ export default function PracticalMode({ onClose }) {
 
   const handleClose = () => { cleanup(); onClose(); };
 
-  // ────────────────────────────────────────────────
-  // RENDER — video always in DOM
-  // ────────────────────────────────────────────────
   return (
-    <div className="fixed inset-0 z-50 bg-black">
-      <div className="relative w-full h-full">
+    <Box sx={{ position: 'fixed', inset: 0, zIndex: 50, bgcolor: 'black' }}>
+      <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
 
         {/* Camera (always rendered) */}
-        <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover"
-          playsInline muted autoPlay
-          style={{ visibility: stage === 'detecting' ? 'visible' : 'hidden' }} />
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-          style={{ visibility: stage === 'detecting' ? 'visible' : 'hidden' }} />
+        <Box
+          component="video"
+          ref={videoRef}
+          playsInline
+          muted
+          autoPlay
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            visibility: stage === 'detecting' ? 'visible' : 'hidden',
+          }}
+        />
+        <Box
+          component="canvas"
+          ref={canvasRef}
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            pointerEvents: 'none',
+            visibility: stage === 'detecting' ? 'visible' : 'hidden',
+          }}
+        />
 
-        {/* ── Loading ── */}
+        {/* Loading */}
         {stage === 'loading' && (
-          <div className="absolute inset-0 z-30 bg-dark-950 flex items-center justify-center">
-            <div className="text-center max-w-xs mx-auto px-6">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-cyan-500/20">
-                <FiCamera size={28} className="text-white" />
-              </div>
-              <h2 className="text-xl font-bold text-white mb-2">Object Explorer</h2>
-              <p className="text-dark-400 text-sm mb-6">Point your camera at any object to learn about it</p>
-              <div className="flex items-center justify-center gap-3 text-cyan-400 text-sm">
-                <FiLoader className="animate-spin" size={16} />
-                <span>{loadProgress}</span>
-              </div>
-              <button onClick={handleClose} className="mt-8 text-dark-500 text-sm hover:text-dark-300 transition-colors">Cancel</button>
-            </div>
-          </div>
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 30,
+              bgcolor: '#0a0a1a',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Box sx={{ textAlign: 'center', maxWidth: 280, mx: 'auto', px: 3 }}>
+              <Avatar
+                sx={{
+                  width: 64,
+                  height: 64,
+                  mx: 'auto',
+                  borderRadius: 3,
+                  background: 'linear-gradient(135deg, #22d3ee, #2563eb)',
+                  mb: 3,
+                  boxShadow: '0 8px 24px rgba(34,211,238,0.2)',
+                }}
+              >
+                <CameraAltRoundedIcon sx={{ fontSize: 28 }} />
+              </Avatar>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', mb: 1 }}>
+                Object Explorer
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
+                Point your camera at any object to learn about it
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
+                <CircularProgress size={16} sx={{ color: '#22d3ee' }} />
+                <Typography variant="body2" sx={{ color: '#22d3ee' }}>
+                  {loadProgress}
+                </Typography>
+              </Box>
+              <Button onClick={handleClose} sx={{ mt: 4, color: 'text.disabled', textTransform: 'none' }}>
+                Cancel
+              </Button>
+            </Box>
+          </Box>
         )}
 
-        {/* ── Error ── */}
+        {/* Error */}
         {stage === 'error' && (
-          <div className="absolute inset-0 z-30 bg-dark-950 flex items-center justify-center">
-            <div className="text-center max-w-xs mx-auto px-6">
-              <div className="w-16 h-16 rounded-2xl bg-red-500/20 flex items-center justify-center mx-auto mb-6">
-                <FiAlertCircle size={28} className="text-red-400" />
-              </div>
-              <h2 className="text-xl font-bold text-white mb-2">Oops!</h2>
-              <p className="text-dark-400 text-sm mb-6">{error}</p>
-              <button onClick={handleClose} className="px-6 py-2.5 rounded-xl bg-dark-700 hover:bg-dark-600 text-white text-sm transition-all">Go Back</button>
-            </div>
-          </div>
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 30,
+              bgcolor: '#0a0a1a',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Box sx={{ textAlign: 'center', maxWidth: 280, mx: 'auto', px: 3 }}>
+              <Avatar
+                sx={{
+                  width: 64,
+                  height: 64,
+                  mx: 'auto',
+                  borderRadius: 3,
+                  bgcolor: alpha('#ef4444', 0.15),
+                  mb: 3,
+                }}
+              >
+                <ErrorOutlineRoundedIcon sx={{ fontSize: 28, color: '#f87171' }} />
+              </Avatar>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', mb: 1 }}>
+                Oops!
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
+                {error}
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={handleClose}
+                sx={{
+                  bgcolor: alpha('#fff', 0.08),
+                  '&:hover': { bgcolor: alpha('#fff', 0.12) },
+                  textTransform: 'none',
+                }}
+              >
+                Go Back
+              </Button>
+            </Box>
+          </Box>
         )}
 
-        {/* ── Detection UI ── */}
+        {/* Detection UI */}
         {stage === 'detecting' && (
           <>
             {/* Top bar */}
-            <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/70 to-transparent p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                  <span className="text-white text-sm font-medium">Object Explorer</span>
-                  <span className="text-dark-400 text-xs">
-                    {detectedObjects.length > 0
-                      ? `${detectedObjects.length} detected`
-                      : 'Scanning...'}
-                  </span>
-                </div>
-                <button onClick={handleClose} className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-all">
-                  <FiX size={18} />
-                </button>
-              </div>
-            </div>
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                zIndex: 10,
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0.7), transparent)',
+                p: 2,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      bgcolor: '#4ade80',
+                      animation: 'pulse 2s cubic-bezier(0.4,0,0.6,1) infinite',
+                      '@keyframes pulse': { '0%, 100%': { opacity: 1 }, '50%': { opacity: 0.5 } },
+                    }}
+                  />
+                  <Typography variant="body2" sx={{ color: 'white', fontWeight: 500 }}>
+                    Object Explorer
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    {detectedObjects.length > 0 ? `${detectedObjects.length} detected` : 'Scanning...'}
+                  </Typography>
+                </Box>
+                <IconButton
+                  onClick={handleClose}
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    bgcolor: 'rgba(0,0,0,0.4)',
+                    backdropFilter: 'blur(8px)',
+                    color: 'white',
+                    '&:hover': { bgcolor: 'rgba(0,0,0,0.6)' },
+                  }}
+                >
+                  <CloseRoundedIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              </Box>
+            </Box>
 
             {/* Hint when nothing detected */}
             {detectedObjects.length === 0 && !features && (
-              <div className="absolute top-24 left-0 right-0 z-10 px-4">
-                <div className="bg-black/50 backdrop-blur-sm rounded-xl p-4 max-w-sm mx-auto border border-dark-600/50 text-center">
-                  <FiCamera size={24} className="text-cyan-400 mx-auto mb-2" />
-                  <p className="text-white text-sm font-medium mb-1">Point your camera at any object</p>
-                  <p className="text-dark-400 text-xs">Try: water bottle, phone, book, fruit, plant, laptop...</p>
-                </div>
-              </div>
+              <Box sx={{ position: 'absolute', top: 96, left: 0, right: 0, zIndex: 10, px: 2 }}>
+                <Card
+                  sx={{
+                    maxWidth: 360,
+                    mx: 'auto',
+                    bgcolor: 'rgba(0,0,0,0.5)',
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    textAlign: 'center',
+                  }}
+                >
+                  <CardContent sx={{ py: 2 }}>
+                    <CameraAltRoundedIcon sx={{ fontSize: 24, color: '#22d3ee', mb: 1 }} />
+                    <Typography variant="body2" sx={{ color: 'white', fontWeight: 500, mb: 0.5 }}>
+                      Point your camera at any object
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      Try: water bottle, phone, book, fruit, plant, laptop...
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Box>
             )}
 
             {/* Feature card */}
             {(features || loadingFeatures) && !quiz && (
-              <div className="absolute bottom-28 left-0 right-0 z-10 px-3">
-                <div className="bg-dark-800/90 backdrop-blur-xl rounded-2xl max-w-sm mx-auto border border-cyan-500/20 shadow-lg shadow-cyan-500/5 overflow-hidden">
+              <Box sx={{ position: 'absolute', bottom: 112, left: 0, right: 0, zIndex: 10, px: 1.5 }}>
+                <Card
+                  sx={{
+                    maxWidth: 360,
+                    mx: 'auto',
+                    bgcolor: 'rgba(30,30,50,0.9)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid',
+                    borderColor: alpha('#22d3ee', 0.2),
+                    overflow: 'hidden',
+                  }}
+                >
                   {loadingFeatures ? (
-                    <div className="flex items-center gap-3 justify-center py-6">
-                      <FiLoader className="animate-spin text-cyan-400" size={16} />
-                      <span className="text-dark-300 text-sm">Learning about this object...</span>
-                    </div>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5, py: 3 }}>
+                      <CircularProgress size={16} sx={{ color: '#22d3ee' }} />
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        Learning about this object...
+                      </Typography>
+                    </Box>
                   ) : features && (
                     <>
                       {/* Header */}
-                      <div className="px-4 pt-4 pb-2 flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center flex-shrink-0">
-                          <FiBookOpen size={14} className="text-white" />
-                        </div>
-                        <div className="min-w-0">
-                          <h3 className="text-white font-bold text-sm truncate">{features.name}</h3>
-                          <p className="text-cyan-400 text-xs">{features.category}</p>
-                        </div>
-                      </div>
+                      <Box sx={{ px: 2, pt: 2, pb: 1, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Avatar
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: 2,
+                            background: 'linear-gradient(135deg, #22d3ee, #2563eb)',
+                          }}
+                        >
+                          <MenuBookRoundedIcon sx={{ fontSize: 14 }} />
+                        </Avatar>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 700, color: 'white' }} noWrap>
+                            {features.name}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#22d3ee' }}>
+                            {features.category}
+                          </Typography>
+                        </Box>
+                      </Box>
 
                       {/* Features list */}
-                      <div className="px-3 pb-3 max-h-48 overflow-y-auto space-y-1">
+                      <Box sx={{ px: 1.5, pb: 1.5, maxHeight: 192, overflowY: 'auto' }}>
                         {features.features?.map((f, i) => (
-                          <button
+                          <Box
                             key={i}
                             onClick={() => setExpandedFeature(expandedFeature === i ? null : i)}
-                            className="w-full text-left px-3 py-2 rounded-lg hover:bg-dark-700/60 transition-all"
+                            sx={{
+                              px: 1.5,
+                              py: 1,
+                              borderRadius: 2,
+                              cursor: 'pointer',
+                              '&:hover': { bgcolor: 'rgba(255,255,255,0.04)' },
+                              transition: 'all 0.2s',
+                            }}
                           >
-                            <div className="flex items-center gap-2">
-                              <span className="text-cyan-400 text-xs font-semibold flex-shrink-0">{f.title}</span>
-                              <FiChevronRight size={12} className={`text-dark-500 transition-transform ${expandedFeature === i ? 'rotate-90' : ''}`} />
-                            </div>
-                            {expandedFeature === i && (
-                              <p className="text-dark-300 text-xs leading-relaxed mt-1.5 pl-0">{f.detail}</p>
-                            )}
-                          </button>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant="caption" sx={{ color: '#22d3ee', fontWeight: 700 }}>
+                                {f.title}
+                              </Typography>
+                              <ChevronRightRoundedIcon
+                                sx={{
+                                  fontSize: 12,
+                                  color: 'text.disabled',
+                                  transition: 'transform 0.2s',
+                                  transform: expandedFeature === i ? 'rotate(90deg)' : 'none',
+                                }}
+                              />
+                            </Box>
+                            <Collapse in={expandedFeature === i}>
+                              <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.6, mt: 0.5, display: 'block' }}>
+                                {f.detail}
+                              </Typography>
+                            </Collapse>
+                          </Box>
                         ))}
-                      </div>
+                      </Box>
 
                       {/* Quiz button */}
-                      <div className="px-3 pb-3">
-                        <button
+                      <Box sx={{ px: 1.5, pb: 1.5 }}>
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          startIcon={<HelpOutlineRoundedIcon sx={{ fontSize: 14 }} />}
                           onClick={loadQuiz}
-                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-medium shadow-lg shadow-purple-500/20 transition-all"
+                          sx={{
+                            py: 1,
+                            borderRadius: 3,
+                            background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
+                            fontSize: '0.75rem',
+                            fontWeight: 500,
+                            textTransform: 'none',
+                            boxShadow: '0 4px 16px rgba(124,58,237,0.2)',
+                            '&:hover': { background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' },
+                          }}
                         >
-                          <FiHelpCircle size={14} />
                           Test Your Knowledge
-                        </button>
-                      </div>
+                        </Button>
+                      </Box>
                     </>
                   )}
-                </div>
-              </div>
+                </Card>
+              </Box>
             )}
 
             {/* Quiz overlay */}
             {quiz && (
-              <div className="absolute inset-0 z-20 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-                <div className="bg-dark-800/95 backdrop-blur-xl rounded-2xl max-w-sm w-full border border-purple-500/20 shadow-2xl p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <FiHelpCircle size={16} className="text-purple-400" />
-                      <span className="text-purple-300 text-xs font-semibold uppercase tracking-wider">Quiz</span>
-                    </div>
-                    <button onClick={() => { setQuiz(null); setQuizAnswer(null); setSelectedOption(null); }} className="text-dark-500 hover:text-white transition-colors">
-                      <FiX size={16} />
-                    </button>
-                  </div>
+              <Box
+                sx={{
+                  position: 'absolute',
+                  inset: 0,
+                  zIndex: 20,
+                  bgcolor: 'rgba(0,0,0,0.7)',
+                  backdropFilter: 'blur(8px)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 2,
+                }}
+              >
+                <Card
+                  sx={{
+                    maxWidth: 360,
+                    width: '100%',
+                    bgcolor: 'rgba(30,30,50,0.95)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid',
+                    borderColor: alpha('#a855f7', 0.2),
+                    p: 2.5,
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <HelpOutlineRoundedIcon sx={{ fontSize: 16, color: '#c084fc' }} />
+                      <Typography variant="overline" sx={{ color: '#c084fc', fontWeight: 700 }}>
+                        Quiz
+                      </Typography>
+                    </Box>
+                    <IconButton
+                      onClick={() => { setQuiz(null); setQuizAnswer(null); setSelectedOption(null); }}
+                      size="small"
+                      sx={{ color: 'text.disabled' }}
+                    >
+                      <CloseRoundedIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </Box>
 
-                  <p className="text-white text-sm font-medium mb-4">{quiz.question}</p>
+                  <Typography variant="body2" sx={{ color: 'white', fontWeight: 500, mb: 2 }}>
+                    {quiz.question}
+                  </Typography>
 
-                  <div className="space-y-2">
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     {quiz.options?.map((opt, i) => {
-                      let btnClass = 'w-full text-left px-4 py-3 rounded-xl text-sm transition-all ';
+                      let sx = {
+                        textAlign: 'left',
+                        px: 2,
+                        py: 1.5,
+                        borderRadius: 3,
+                        fontSize: '0.85rem',
+                        textTransform: 'none',
+                        justifyContent: 'flex-start',
+                        border: '1px solid transparent',
+                        transition: 'all 0.2s',
+                      };
                       if (quizAnswer) {
                         if (quizAnswer.correct && selectedOption === i) {
-                          btnClass += 'bg-green-500/20 border border-green-500/40 text-green-300';
+                          sx = { ...sx, bgcolor: alpha('#22c55e', 0.12), borderColor: alpha('#22c55e', 0.4), color: '#86efac' };
                         } else if (!quizAnswer.correct && selectedOption === i) {
-                          btnClass += 'bg-red-500/20 border border-red-500/40 text-red-300';
+                          sx = { ...sx, bgcolor: alpha('#ef4444', 0.12), borderColor: alpha('#ef4444', 0.4), color: '#fca5a5' };
                         } else {
-                          btnClass += 'bg-dark-700/50 text-dark-500 border border-transparent';
+                          sx = { ...sx, bgcolor: alpha('#fff', 0.03), color: 'text.disabled' };
                         }
                       } else {
-                        btnClass += 'bg-dark-700/60 hover:bg-dark-600/80 text-dark-200 border border-transparent hover:border-purple-500/30';
+                        sx = {
+                          ...sx,
+                          bgcolor: alpha('#fff', 0.04),
+                          color: '#e2e8f0',
+                          '&:hover': { bgcolor: alpha('#fff', 0.06), borderColor: alpha('#a855f7', 0.3) },
+                        };
                       }
+
                       return (
-                        <button
+                        <Button
                           key={i}
                           onClick={() => {
                             if (quizAnswer) return;
                             setSelectedOption(i);
                             submitAnswer(i);
                           }}
-                          className={btnClass}
                           disabled={!!quizAnswer}
+                          sx={sx}
                         >
-                          <span className="text-dark-500 mr-2">{String.fromCharCode(65 + i)}.</span>
+                          <Typography component="span" sx={{ color: 'text.disabled', mr: 1 }}>
+                            {String.fromCharCode(65 + i)}.
+                          </Typography>
                           {opt}
-                        </button>
+                        </Button>
                       );
                     })}
-                  </div>
+                  </Box>
 
                   {quizAnswer && (
-                    <div className={`mt-4 p-3 rounded-xl text-xs leading-relaxed ${
-                      quizAnswer.correct
-                        ? 'bg-green-500/10 border border-green-500/20 text-green-300'
-                        : 'bg-amber-500/10 border border-amber-500/20 text-amber-300'
-                    }`}>
-                      {quizAnswer.explanation}
-                    </div>
+                    <Box
+                      sx={{
+                        mt: 2,
+                        p: 1.5,
+                        borderRadius: 3,
+                        fontSize: '0.75rem',
+                        lineHeight: 1.6,
+                        bgcolor: quizAnswer.correct ? alpha('#22c55e', 0.08) : alpha('#f59e0b', 0.08),
+                        border: '1px solid',
+                        borderColor: quizAnswer.correct ? alpha('#22c55e', 0.2) : alpha('#f59e0b', 0.2),
+                        color: quizAnswer.correct ? '#86efac' : '#fcd34d',
+                      }}
+                    >
+                      <Typography variant="caption">{quizAnswer.explanation}</Typography>
+                    </Box>
                   )}
 
                   {quizAnswer && (
-                    <button
+                    <Button
+                      fullWidth
                       onClick={() => { setQuiz(null); setQuizAnswer(null); setSelectedOption(null); }}
-                      className="w-full mt-3 py-2.5 rounded-xl bg-dark-700 hover:bg-dark-600 text-dark-300 text-xs transition-all"
+                      sx={{
+                        mt: 1.5,
+                        py: 1,
+                        borderRadius: 3,
+                        bgcolor: alpha('#fff', 0.06),
+                        color: 'text.secondary',
+                        textTransform: 'none',
+                        fontSize: '0.75rem',
+                        '&:hover': { bgcolor: alpha('#fff', 0.1) },
+                      }}
                     >
                       Continue Exploring
-                    </button>
+                    </Button>
                   )}
-                </div>
-              </div>
+                </Card>
+              </Box>
             )}
 
             {/* Bottom bar */}
-            <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/70 to-transparent p-4 pt-8">
-              <div className="flex items-center justify-center">
-                <button onClick={handleClose} className="px-6 py-2.5 rounded-xl bg-dark-700/80 backdrop-blur-sm hover:bg-dark-600 text-dark-300 text-sm transition-all">
-                  End Session
-                </button>
-              </div>
-            </div>
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                zIndex: 10,
+                background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
+                p: 2,
+                pt: 4,
+                display: 'flex',
+                justifyContent: 'center',
+              }}
+            >
+              <Button
+                onClick={handleClose}
+                sx={{
+                  px: 3,
+                  py: 1,
+                  borderRadius: 3,
+                  bgcolor: 'rgba(255,255,255,0.08)',
+                  backdropFilter: 'blur(8px)',
+                  color: 'text.secondary',
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.12)' },
+                }}
+              >
+                End Session
+              </Button>
+            </Box>
           </>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

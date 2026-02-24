@@ -3,13 +3,30 @@ import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../api';
 import { useAuthStore } from '../store';
 import toast from 'react-hot-toast';
-import { FiUser, FiLock, FiArrowRight } from 'react-icons/fi';
+
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  Avatar,
+  InputAdornment,
+  CircularProgress,
+  alpha,
+  useTheme,
+} from '@mui/material';
+import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 
 export default function LoginPage() {
   const [form, setForm] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
   const { login } = useAuthStore();
   const navigate = useNavigate();
+  const theme = useTheme();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,72 +49,140 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-dark-950 p-4">
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: 'background.default',
+        p: 2,
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
       {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-600/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl" />
-      </div>
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '25%',
+          left: '25%',
+          width: 384,
+          height: 384,
+          bgcolor: alpha(theme.palette.primary.main, 0.08),
+          borderRadius: '50%',
+          filter: 'blur(80px)',
+        }}
+      />
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: '25%',
+          right: '25%',
+          width: 384,
+          height: 384,
+          bgcolor: alpha(theme.palette.secondary.main, 0.08),
+          borderRadius: '50%',
+          filter: 'blur(80px)',
+        }}
+      />
 
-      <div className="relative w-full max-w-md">
+      <Box sx={{ position: 'relative', width: '100%', maxWidth: 440 }}>
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary-500 to-purple-500 flex items-center justify-center text-2xl font-bold mb-4">
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Avatar
+            sx={{
+              width: 64,
+              height: 64,
+              mx: 'auto',
+              borderRadius: 3,
+              background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+              fontSize: '1.6rem',
+              fontWeight: 800,
+              mb: 2,
+            }}
+          >
             E
-          </div>
-          <h1 className="text-3xl font-bold gradient-text">EduVid AI</h1>
-          <p className="text-dark-400 mt-2">AI Educational Video Generator</p>
-        </div>
+          </Avatar>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 800,
+              background: 'linear-gradient(135deg, #818cf8, #c084fc)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            EduVid AI
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
+            AI Educational Video Generator
+          </Typography>
+        </Box>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="card space-y-5">
-          <h2 className="text-xl font-semibold text-center">Welcome Back</h2>
+        {/* Form Card */}
+        <Card>
+          <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
+            <Typography variant="h6" sx={{ textAlign: 'center', fontWeight: 600, mb: 3 }}>
+              Welcome Back
+            </Typography>
 
-          <div className="space-y-4">
-            <div className="relative">
-              <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-500" size={18} />
-              <input
-                type="text"
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+              <TextField
+                fullWidth
                 placeholder="Username"
-                className="input-field pl-12"
                 value={form.username}
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonOutlineRoundedIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                    </InputAdornment>
+                  ),
+                }}
               />
-            </div>
-            <div className="relative">
-              <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-500" size={18} />
-              <input
+
+              <TextField
+                fullWidth
                 type="password"
                 placeholder="Password"
-                className="input-field pl-12"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockOutlinedIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                    </InputAdornment>
+                  ),
+                }}
               />
-            </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary w-full flex items-center justify-center gap-2"
-          >
-            {loading ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <>
-                Sign In <FiArrowRight size={18} />
-              </>
-            )}
-          </button>
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={loading}
+                size="large"
+                endIcon={!loading && <ArrowForwardRoundedIcon />}
+              >
+                {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
+              </Button>
 
-          <p className="text-center text-sm text-dark-400">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-primary-400 hover:text-primary-300 font-medium">
-              Sign Up
-            </Link>
-          </p>
-        </form>
-      </div>
-    </div>
+              <Typography variant="body2" sx={{ textAlign: 'center', color: 'text.secondary' }}>
+                Don't have an account?{' '}
+                <Typography
+                  component={Link}
+                  to="/register"
+                  variant="body2"
+                  sx={{ color: 'primary.light', fontWeight: 600, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+                >
+                  Sign Up
+                </Typography>
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    </Box>
   );
 }

@@ -1,16 +1,34 @@
 import { videoAPI } from '../api';
-import { FiClock, FiCheckCircle, FiAlertCircle, FiLoader, FiTrash2, FiPlay } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 
+import {
+  Card,
+  CardContent,
+  CardMedia,
+  Box,
+  Typography,
+  Chip,
+  IconButton,
+  alpha,
+  useTheme,
+} from '@mui/material';
+import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import SyncRoundedIcon from '@mui/icons-material/SyncRounded';
+
 const STATUS_CONFIG = {
-  pending: { icon: FiClock, color: 'text-yellow-400', bg: 'bg-yellow-400/10', label: 'Pending' },
-  processing: { icon: FiLoader, color: 'text-blue-400', bg: 'bg-blue-400/10', label: 'Processing' },
-  completed: { icon: FiCheckCircle, color: 'text-green-400', bg: 'bg-green-400/10', label: 'Ready' },
-  failed: { icon: FiAlertCircle, color: 'text-red-400', bg: 'bg-red-400/10', label: 'Failed' },
+  pending: { icon: AccessTimeRoundedIcon, color: '#facc15', label: 'Pending' },
+  processing: { icon: SyncRoundedIcon, color: '#60a5fa', label: 'Processing' },
+  completed: { icon: CheckCircleRoundedIcon, color: '#4ade80', label: 'Ready' },
+  failed: { icon: ErrorOutlineRoundedIcon, color: '#f87171', label: 'Failed' },
 };
 
 export default function VideoCard({ video, onDelete, compact = false }) {
   const navigate = useNavigate();
+  const theme = useTheme();
   const config = STATUS_CONFIG[video.status] || STATUS_CONFIG.pending;
   const StatusIcon = config.icon;
 
@@ -21,68 +39,176 @@ export default function VideoCard({ video, onDelete, compact = false }) {
   };
 
   return (
-    <div className="video-card group">
-      {/* Thumbnail / Preview */}
-      <div
-        className="relative aspect-video bg-dark-800 overflow-hidden cursor-pointer"
+    <Card
+      sx={{
+        overflow: 'hidden',
+        transition: 'all 0.2s',
+        '&:hover': {
+          transform: 'translateY(-2px)',
+          boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.12)}`,
+        },
+        '&:hover .play-overlay': { opacity: 1 },
+        '&:hover .delete-btn': { opacity: 1 },
+      }}
+    >
+      {/* Thumbnail */}
+      <Box
         onClick={handlePlay}
+        sx={{
+          position: 'relative',
+          aspectRatio: '16/9',
+          bgcolor: alpha(theme.palette.text.primary, 0.04),
+          cursor: video.status === 'completed' ? 'pointer' : 'default',
+          overflow: 'hidden',
+        }}
       >
         {video.status === 'completed' && video.thumbnail_path ? (
-          <img
+          <Box
+            component="img"
             src={videoAPI.thumbnailUrl(video.id)}
             alt={video.title}
-            className="w-full h-full object-cover"
+            sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
             onError={(e) => { e.target.style.display = 'none'; }}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className={`${config.color}`}>
-              <StatusIcon size={32} className={video.status === 'processing' ? 'animate-spin' : ''} />
-            </div>
-          </div>
+          <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <StatusIcon
+              sx={{
+                fontSize: 32,
+                color: config.color,
+                ...(video.status === 'processing' && {
+                  animation: 'spin 1s linear infinite',
+                  '@keyframes spin': { from: { transform: 'rotate(0deg)' }, to: { transform: 'rotate(360deg)' } },
+                }),
+              }}
+            />
+          </Box>
         )}
 
         {/* Play overlay */}
         {video.status === 'completed' && (
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <FiPlay size={20} className="text-white ml-1" />
-            </div>
-          </div>
+          <Box
+            className="play-overlay"
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              bgcolor: 'rgba(0,0,0,0.4)',
+              opacity: 0,
+              transition: 'opacity 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: '50%',
+                bgcolor: 'rgba(255,255,255,0.2)',
+                backdropFilter: 'blur(8px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <PlayArrowRoundedIcon sx={{ fontSize: 24, color: 'white', ml: 0.3 }} />
+            </Box>
+          </Box>
         )}
 
         {/* Duration badge */}
         {video.duration && (
-          <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-            {Math.floor(video.duration / 60)}:{(video.duration % 60).toString().padStart(2, '0')}
-          </div>
+          <Chip
+            label={`${Math.floor(video.duration / 60)}:${(video.duration % 60).toString().padStart(2, '0')}`}
+            size="small"
+            sx={{
+              position: 'absolute',
+              bottom: 8,
+              right: 8,
+              bgcolor: 'rgba(0,0,0,0.7)',
+              color: 'white',
+              fontSize: '0.7rem',
+              height: 24,
+            }}
+          />
         )}
-      </div>
+      </Box>
 
       {/* Info */}
-      <div className="p-4">
-        <h3 className="font-semibold text-sm text-white line-clamp-2 mb-2">{video.title}</h3>
+      <CardContent sx={{ p: 2 }}>
+        <Typography
+          variant="subtitle2"
+          sx={{
+            fontWeight: 600,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            mb: 1,
+          }}
+        >
+          {video.title}
+        </Typography>
 
         {!compact && (
-          <p className="text-xs text-dark-500 line-clamp-2 mb-3">{video.question}</p>
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.disabled',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              mb: 1.5,
+            }}
+          >
+            {video.question}
+          </Typography>
         )}
 
-        <div className="flex items-center justify-between">
-          <div className={`flex items-center gap-1.5 text-xs ${config.color} ${config.bg} px-2 py-1 rounded-full`}>
-            <StatusIcon size={12} className={video.status === 'processing' ? 'animate-spin' : ''} />
-            <span>{config.label}</span>
-          </div>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Chip
+            icon={
+              <StatusIcon
+                sx={{
+                  fontSize: 12,
+                  color: `${config.color} !important`,
+                  ...(video.status === 'processing' && {
+                    animation: 'spin 1s linear infinite',
+                    '@keyframes spin': { from: { transform: 'rotate(0deg)' }, to: { transform: 'rotate(360deg)' } },
+                  }),
+                }}
+              />
+            }
+            label={config.label}
+            size="small"
+            sx={{
+              bgcolor: alpha(config.color, 0.1),
+              color: config.color,
+              fontSize: '0.7rem',
+              height: 24,
+              '& .MuiChip-icon': { ml: 0.5 },
+            }}
+          />
 
           {onDelete && (
-            <button
+            <IconButton
+              className="delete-btn"
               onClick={(e) => { e.stopPropagation(); onDelete(video.id); }}
-              className="p-1.5 rounded-lg text-dark-500 hover:text-red-400 hover:bg-dark-800 transition-all opacity-0 group-hover:opacity-100"
+              size="small"
+              sx={{
+                opacity: 0,
+                transition: 'opacity 0.2s',
+                color: 'text.disabled',
+                '&:hover': { color: 'error.main' },
+              }}
             >
-              <FiTrash2 size={14} />
-            </button>
+              <DeleteOutlineRoundedIcon sx={{ fontSize: 16 }} />
+            </IconButton>
           )}
-        </div>
-      </div>
-    </div>
+        </Box>
+      </CardContent>
+    </Card>
   );
 }

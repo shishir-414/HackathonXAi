@@ -1,6 +1,21 @@
 import { useState, useEffect } from 'react';
-import { FiCheck, FiX, FiAward, FiRefreshCw } from 'react-icons/fi';
 import { practicalAPI } from '../api';
+
+import {
+  Box,
+  Typography,
+  Button,
+  Card,
+  CardContent,
+  Avatar,
+  CircularProgress,
+  Chip,
+  alpha,
+} from '@mui/material';
+import EmojiEventsRoundedIcon from '@mui/icons-material/EmojiEventsRounded';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 
 export default function InteractiveQuiz({ topic, onClose, onNextQuiz }) {
   const [quiz, setQuiz] = useState(null);
@@ -9,7 +24,6 @@ export default function InteractiveQuiz({ topic, onClose, onNextQuiz }) {
   const [loading, setLoading] = useState(false);
   const [score, setScore] = useState({ correct: 0, total: 0 });
 
-  // Load quiz on mount
   useEffect(() => {
     loadQuiz();
   }, []);
@@ -29,7 +43,7 @@ export default function InteractiveQuiz({ topic, onClose, onNextQuiz }) {
   };
 
   const handleAnswer = async (index) => {
-    if (selectedIndex !== null) return; // Already answered
+    if (selectedIndex !== null) return;
     setSelectedIndex(index);
 
     try {
@@ -59,111 +73,199 @@ export default function InteractiveQuiz({ topic, onClose, onNextQuiz }) {
 
   if (loading) {
     return (
-      <div className="bg-dark-800/95 backdrop-blur-xl rounded-2xl p-6 border border-dark-600 max-w-sm mx-auto">
-        <div className="flex items-center justify-center gap-3">
-          <div className="w-6 h-6 border-2 border-primary-400/30 border-t-primary-400 rounded-full animate-spin" />
-          <span className="text-dark-300">Loading quiz...</span>
-        </div>
-      </div>
+      <Card
+        sx={{
+          maxWidth: 360,
+          mx: 'auto',
+          bgcolor: 'rgba(30,30,50,0.95)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid',
+          borderColor: alpha('#fff', 0.08),
+        }}
+      >
+        <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5, py: 3 }}>
+          <CircularProgress size={20} />
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Loading quiz...
+          </Typography>
+        </CardContent>
+      </Card>
     );
   }
 
   if (!quiz) {
     return (
-      <div className="bg-dark-800/95 backdrop-blur-xl rounded-2xl p-6 border border-dark-600 max-w-sm mx-auto">
-        <p className="text-dark-400 text-center">No quiz available for this topic.</p>
-        <button onClick={onClose} className="mt-4 w-full btn-primary text-sm py-2">
-          Back to Camera
-        </button>
-      </div>
+      <Card
+        sx={{
+          maxWidth: 360,
+          mx: 'auto',
+          bgcolor: 'rgba(30,30,50,0.95)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid',
+          borderColor: alpha('#fff', 0.08),
+        }}
+      >
+        <CardContent sx={{ textAlign: 'center', py: 3 }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+            No quiz available for this topic.
+          </Typography>
+          <Button variant="contained" onClick={onClose} size="small" sx={{ textTransform: 'none' }}>
+            Back to Camera
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-dark-800/95 backdrop-blur-xl rounded-2xl p-5 border border-dark-600 max-w-sm mx-auto shadow-2xl">
+    <Card
+      sx={{
+        maxWidth: 360,
+        mx: 'auto',
+        bgcolor: 'rgba(30,30,50,0.95)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid',
+        borderColor: alpha('#fff', 0.08),
+        p: 2.5,
+      }}
+    >
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <FiAward className="text-yellow-400" size={18} />
-          <span className="text-sm font-semibold text-white">Quick Quiz</span>
-        </div>
-        <div className="text-xs text-dark-400 bg-dark-700 px-2 py-1 rounded-full">
-          {score.correct}/{score.total} correct
-        </div>
-      </div>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <EmojiEventsRoundedIcon sx={{ fontSize: 18, color: '#facc15' }} />
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            Quick Quiz
+          </Typography>
+        </Box>
+        <Chip
+          label={`${score.correct}/${score.total} correct`}
+          size="small"
+          sx={{
+            bgcolor: alpha('#fff', 0.06),
+            color: 'text.secondary',
+            fontSize: '0.7rem',
+            height: 24,
+          }}
+        />
+      </Box>
 
       {/* Question */}
-      <h3 className="text-white font-medium text-base mb-4 leading-relaxed">
+      <Typography variant="body1" sx={{ fontWeight: 500, mb: 2, lineHeight: 1.6 }}>
         {quiz.question}
-      </h3>
+      </Typography>
 
       {/* Options */}
-      <div className="space-y-2.5 mb-4">
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 2 }}>
         {quiz.options.map((option, index) => {
-          let optionStyle = 'border-dark-600 hover:border-primary-500/50 hover:bg-dark-700/50';
+          let sx = {
+            textAlign: 'left',
+            px: 2,
+            py: 1.5,
+            borderRadius: 3,
+            textTransform: 'none',
+            justifyContent: 'flex-start',
+            border: '1px solid',
+            transition: 'all 0.2s',
+            gap: 1.5,
+          };
+
           let icon = null;
 
           if (selectedIndex !== null) {
             if (index === quiz.correct_index) {
-              optionStyle = 'border-green-500/60 bg-green-500/10';
-              icon = <FiCheck className="text-green-400" size={16} />;
+              sx = { ...sx, borderColor: alpha('#22c55e', 0.5), bgcolor: alpha('#22c55e', 0.08) };
+              icon = <CheckRoundedIcon sx={{ fontSize: 16, color: '#4ade80' }} />;
             } else if (index === selectedIndex && index !== quiz.correct_index) {
-              optionStyle = 'border-red-500/60 bg-red-500/10';
-              icon = <FiX className="text-red-400" size={16} />;
+              sx = { ...sx, borderColor: alpha('#ef4444', 0.5), bgcolor: alpha('#ef4444', 0.08) };
+              icon = <CloseRoundedIcon sx={{ fontSize: 16, color: '#f87171' }} />;
             } else {
-              optionStyle = 'border-dark-700 opacity-50';
+              sx = { ...sx, borderColor: alpha('#fff', 0.04), opacity: 0.5 };
             }
+          } else {
+            sx = {
+              ...sx,
+              borderColor: alpha('#fff', 0.08),
+              '&:hover': { borderColor: alpha('#6366f1', 0.5), bgcolor: alpha('#fff', 0.03) },
+            };
           }
 
           return (
-            <button
+            <Button
               key={index}
               onClick={() => handleAnswer(index)}
               disabled={selectedIndex !== null}
-              className={`w-full text-left px-4 py-3 rounded-xl border transition-all flex items-center gap-3 ${optionStyle}`}
+              fullWidth
+              sx={sx}
             >
-              <span className="w-7 h-7 rounded-full bg-dark-600 flex items-center justify-center text-xs font-bold text-dark-300 flex-shrink-0">
+              <Avatar
+                sx={{
+                  width: 28,
+                  height: 28,
+                  bgcolor: alpha('#fff', 0.06),
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: 'text.secondary',
+                }}
+              >
                 {String.fromCharCode(65 + index)}
-              </span>
-              <span className="text-sm text-white flex-1">{option}</span>
+              </Avatar>
+              <Typography variant="body2" sx={{ flex: 1, color: 'white' }}>
+                {option}
+              </Typography>
               {icon}
-            </button>
+            </Button>
           );
         })}
-      </div>
+      </Box>
 
       {/* Result explanation */}
       {result && (
-        <div
-          className={`p-3 rounded-xl text-sm leading-relaxed mb-4 ${
-            result.is_correct
-              ? 'bg-green-500/10 border border-green-500/30 text-green-300'
-              : 'bg-amber-500/10 border border-amber-500/30 text-amber-300'
-          }`}
+        <Box
+          sx={{
+            p: 1.5,
+            borderRadius: 3,
+            lineHeight: 1.6,
+            mb: 2,
+            bgcolor: result.is_correct ? alpha('#22c55e', 0.08) : alpha('#f59e0b', 0.08),
+            border: '1px solid',
+            borderColor: result.is_correct ? alpha('#22c55e', 0.25) : alpha('#f59e0b', 0.25),
+            color: result.is_correct ? '#86efac' : '#fcd34d',
+          }}
         >
-          {result.is_correct ? '🎉 ' : '💡 '}
-          {result.explanation}
-        </div>
+          <Typography variant="caption" sx={{ lineHeight: 1.6 }}>
+            {result.is_correct ? '🎉 ' : '💡 '}
+            {result.explanation}
+          </Typography>
+        </Box>
       )}
 
       {/* Actions */}
-      <div className="flex gap-2">
+      <Box sx={{ display: 'flex', gap: 1 }}>
         {result && (
-          <button
+          <Button
+            variant="contained"
+            fullWidth
+            startIcon={<RefreshRoundedIcon sx={{ fontSize: 14 }} />}
             onClick={loadQuiz}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium transition-all"
+            sx={{ textTransform: 'none', fontWeight: 500, fontSize: '0.85rem' }}
           >
-            <FiRefreshCw size={14} />
             Next Question
-          </button>
+          </Button>
         )}
-        <button
+        <Button
           onClick={onClose}
-          className={`${result ? '' : 'flex-1'} px-4 py-2.5 rounded-xl bg-dark-700 hover:bg-dark-600 text-dark-300 text-sm transition-all`}
+          sx={{
+            flex: result ? 'none' : 1,
+            px: result ? 2 : undefined,
+            textTransform: 'none',
+            bgcolor: alpha('#fff', 0.06),
+            color: 'text.secondary',
+            '&:hover': { bgcolor: alpha('#fff', 0.1) },
+          }}
         >
           {result ? 'Done' : 'Skip'}
-        </button>
-      </div>
-    </div>
+        </Button>
+      </Box>
+    </Card>
   );
 }

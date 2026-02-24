@@ -1,92 +1,136 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiCamera, FiArrowLeft, FiZap, FiSmartphone, FiBookOpen, FiHelpCircle } from 'react-icons/fi';
 import PracticalMode from './PracticalMode';
+
+import {
+  Box,
+  Typography,
+  Button,
+  Card,
+  CardContent,
+  Avatar,
+  alpha,
+  useTheme,
+} from '@mui/material';
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded';
+import SmartphoneRoundedIcon from '@mui/icons-material/SmartphoneRounded';
+import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
+import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
+import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
+
+const STEPS = [
+  { icon: SmartphoneRoundedIcon, color: '#22d3ee', title: '1. Open Camera', desc: 'AI loads in your browser — no data leaves your device' },
+  { icon: BoltRoundedIcon, color: '#22d3ee', title: '2. Point at Objects', desc: 'Bottles, books, phones, fruits, plants — anything!' },
+  { icon: MenuBookRoundedIcon, color: '#22d3ee', title: '3. Learn Features', desc: "See what it's made of, how it works, and fun science facts" },
+  { icon: HelpOutlineRoundedIcon, color: '#a855f7', title: '4. Take a Quiz', desc: 'Test your knowledge with questions about each object' },
+];
 
 export default function PracticalPage() {
   const navigate = useNavigate();
   const [started, setStarted] = useState(false);
+  const theme = useTheme();
 
   if (started) {
     return <PracticalMode onClose={() => setStarted(false)} />;
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 sm:px-6 py-8">
-      <button
+    <Box sx={{ maxWidth: 520, mx: 'auto', px: { xs: 2, sm: 3 }, py: 4 }}>
+      <Button
+        startIcon={<ArrowBackRoundedIcon />}
         onClick={() => navigate('/')}
-        className="flex items-center gap-2 text-dark-400 hover:text-white text-sm mb-8 transition-colors"
+        sx={{ color: 'text.secondary', mb: 4, textTransform: 'none' }}
       >
-        <FiArrowLeft size={16} />
         Back to Dashboard
-      </button>
+      </Button>
 
-      <div className="text-center mb-10">
-        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-cyan-500/30">
-          <FiCamera size={34} className="text-white" />
-        </div>
-        <h1 className="text-2xl font-bold mb-3">Object Explorer</h1>
-        <p className="text-dark-400 text-sm max-w-md mx-auto leading-relaxed">
+      <Box sx={{ textAlign: 'center', mb: 5 }}>
+        <Avatar
+          sx={{
+            width: 80,
+            height: 80,
+            mx: 'auto',
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #22d3ee, #2563eb)',
+            mb: 2.5,
+            boxShadow: '0 8px 24px rgba(34,211,238,0.3)',
+          }}
+        >
+          <CameraAltRoundedIcon sx={{ fontSize: 34 }} />
+        </Avatar>
+        <Typography variant="h5" sx={{ fontWeight: 700, mb: 1.5 }}>
+          Object Explorer
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 400, mx: 'auto', lineHeight: 1.7 }}>
           Point your camera at any object around you — AI will identify it and
           show you interesting facts, science, and educational features about it!
-        </p>
-      </div>
+        </Typography>
+      </Box>
 
       {/* How it works */}
-      <div className="bg-dark-800/60 border border-dark-700 rounded-2xl p-5 mb-8">
-        <h2 className="text-sm font-semibold text-dark-300 uppercase tracking-wide mb-4">How it works</h2>
-        <div className="space-y-4">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <FiSmartphone size={14} className="text-cyan-400" />
-            </div>
-            <div>
-              <p className="text-white text-sm font-medium">1. Open Camera</p>
-              <p className="text-dark-400 text-xs">AI loads in your browser — no data leaves your device</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <FiZap size={14} className="text-cyan-400" />
-            </div>
-            <div>
-              <p className="text-white text-sm font-medium">2. Point at Objects</p>
-              <p className="text-dark-400 text-xs">Bottles, books, phones, fruits, plants — anything!</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <FiBookOpen size={14} className="text-cyan-400" />
-            </div>
-            <div>
-              <p className="text-white text-sm font-medium">3. Learn Features</p>
-              <p className="text-dark-400 text-xs">See what it's made of, how it works, and fun science facts</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <FiHelpCircle size={14} className="text-purple-400" />
-            </div>
-            <div>
-              <p className="text-white text-sm font-medium">4. Take a Quiz</p>
-              <p className="text-dark-400 text-xs">Test your knowledge with questions about each object</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Card sx={{ mb: 4 }}>
+        <CardContent sx={{ p: 2.5 }}>
+          <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+            How it works
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            {STEPS.map(({ icon: Icon, color, title, desc }) => (
+              <Box key={title} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                <Avatar
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 2,
+                    bgcolor: alpha(color, 0.15),
+                    mt: 0.25,
+                  }}
+                >
+                  <Icon sx={{ fontSize: 14, color }} />
+                </Avatar>
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {title}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    {desc}
+                  </Typography>
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        </CardContent>
+      </Card>
 
       {/* Start button */}
-      <button
+      <Button
+        fullWidth
+        variant="contained"
+        size="large"
+        startIcon={<CameraAltRoundedIcon />}
         onClick={() => setStarted(true)}
-        className="w-full py-4 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold text-base flex items-center justify-center gap-3 transition-all shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98]"
+        sx={{
+          py: 1.8,
+          borderRadius: 3,
+          background: 'linear-gradient(135deg, #0891b2, #2563eb)',
+          fontWeight: 600,
+          fontSize: '1rem',
+          boxShadow: '0 8px 24px rgba(34,211,238,0.3)',
+          '&:hover': {
+            background: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+            boxShadow: '0 8px 28px rgba(34,211,238,0.4)',
+            transform: 'scale(1.02)',
+          },
+          '&:active': { transform: 'scale(0.98)' },
+          transition: 'all 0.2s',
+        }}
       >
-        <FiCamera size={20} />
         Start Exploring
-      </button>
+      </Button>
 
-      <p className="text-center text-dark-600 text-xs mt-4">
+      <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: 'text.disabled', mt: 2 }}>
         Works best with good lighting. Supports 20+ common objects.
-      </p>
-    </div>
+      </Typography>
+    </Box>
   );
 }

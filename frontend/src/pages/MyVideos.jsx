@@ -3,12 +3,28 @@ import { videoAPI } from '../api';
 import { useVideoStore } from '../store';
 import VideoCard from '../components/VideoCard';
 import toast from 'react-hot-toast';
-import { FiVideo, FiFilter, FiRefreshCw } from 'react-icons/fi';
+
+import {
+  Box,
+  Typography,
+  Button,
+  Grid,
+  Chip,
+  Skeleton,
+  Card,
+  CardContent,
+  alpha,
+  useTheme,
+} from '@mui/material';
+import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
+import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
+import FilterListRoundedIcon from '@mui/icons-material/FilterListRounded';
 
 export default function MyVideos() {
   const { videos, setVideos } = useVideoStore();
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const theme = useTheme();
 
   useEffect(() => {
     loadVideos();
@@ -50,75 +66,86 @@ export default function MyVideos() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <Box sx={{ maxWidth: 1280, mx: 'auto', px: { xs: 2, sm: 3 }, py: 4 }}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-3">
-            <FiVideo className="text-primary-400" />
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <VideocamRoundedIcon sx={{ color: 'primary.main' }} />
             My Videos
-          </h1>
-          <p className="text-dark-400 text-sm mt-1">{videos.length} videos total</p>
-        </div>
-        <button
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+            {videos.length} videos total
+          </Typography>
+        </Box>
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<RefreshRoundedIcon />}
           onClick={loadVideos}
-          className="btn-secondary flex items-center gap-2 text-sm"
         >
-          <FiRefreshCw size={16} />
           Refresh
-        </button>
-      </div>
+        </Button>
+      </Box>
 
       {/* Filters */}
-      <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
-        <FiFilter size={16} className="text-dark-500 flex-shrink-0" />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3, flexWrap: 'wrap' }}>
+        <FilterListRoundedIcon sx={{ fontSize: 16, color: 'text.disabled', mr: 0.5 }} />
         {filters.map(({ key, label }) => (
-          <button
+          <Chip
             key={key}
+            label={label}
+            size="small"
             onClick={() => setFilter(key)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
-              filter === key
-                ? 'bg-primary-600 text-white'
-                : 'bg-dark-900 text-dark-400 hover:text-white border border-dark-800'
-            }`}
-          >
-            {label}
-          </button>
+            variant={filter === key ? 'filled' : 'outlined'}
+            color={filter === key ? 'primary' : 'default'}
+            sx={{
+              fontWeight: 500,
+              ...(filter !== key && {
+                borderColor: alpha(theme.palette.text.primary, 0.12),
+                '&:hover': { borderColor: alpha(theme.palette.text.primary, 0.25) },
+              }),
+            }}
+          />
         ))}
-      </div>
+      </Box>
 
       {/* Video Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Grid container spacing={2}>
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="rounded-2xl bg-dark-900 border border-dark-800 overflow-hidden">
-              <div className="aspect-video bg-dark-800 loading-pulse" />
-              <div className="p-4 space-y-3">
-                <div className="h-4 bg-dark-800 rounded loading-pulse w-3/4" />
-                <div className="h-3 bg-dark-800 rounded loading-pulse w-1/2" />
-              </div>
-            </div>
+            <Grid item xs={12} sm={6} lg={4} key={i}>
+              <Card>
+                <Skeleton variant="rectangular" sx={{ aspectRatio: '16/9' }} />
+                <CardContent>
+                  <Skeleton width="75%" sx={{ mb: 1 }} />
+                  <Skeleton width="50%" />
+                </CardContent>
+              </Card>
+            </Grid>
           ))}
-        </div>
+        </Grid>
       ) : filteredVideos.length === 0 ? (
-        <div className="card text-center py-16">
-          <FiVideo size={48} className="mx-auto text-dark-600 mb-4" />
-          <h3 className="text-lg font-semibold mb-2">
+        <Card sx={{ textAlign: 'center', py: 8 }}>
+          <VideocamRoundedIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
             {filter === 'all' ? 'No videos yet' : `No ${filter} videos`}
-          </h3>
-          <p className="text-dark-400">
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
             {filter === 'all'
               ? 'Generate your first video to see it here!'
               : 'Try a different filter'}
-          </p>
-        </div>
+          </Typography>
+        </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Grid container spacing={2}>
           {filteredVideos.map((video) => (
-            <VideoCard key={video.id} video={video} onDelete={handleDelete} />
+            <Grid item xs={12} sm={6} lg={4} key={video.id}>
+              <VideoCard video={video} onDelete={handleDelete} />
+            </Grid>
           ))}
-        </div>
+        </Grid>
       )}
-    </div>
+    </Box>
   );
 }

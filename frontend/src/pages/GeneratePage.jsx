@@ -3,7 +3,27 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { videoAPI } from '../api';
 import { useVideoStore } from '../store';
 import toast from 'react-hot-toast';
-import { FiSend, FiZap, FiLoader, FiCheck } from 'react-icons/fi';
+
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  Avatar,
+  IconButton,
+  Grid,
+  CircularProgress,
+  Chip,
+  alpha,
+  useTheme,
+} from '@mui/material';
+import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
+import SendRoundedIcon from '@mui/icons-material/SendRounded';
+import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
+import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 
 const SUGGESTED_QUESTIONS = [
   { emoji: '🌿', q: 'What is photosynthesis?' },
@@ -23,6 +43,7 @@ export default function GeneratePage() {
   const [generating, setGenerating] = useState(false);
   const [generatedVideo, setGeneratedVideo] = useState(null);
   const { addVideo } = useVideoStore();
+  const theme = useTheme();
 
   useEffect(() => {
     const q = searchParams.get('q');
@@ -43,8 +64,6 @@ export default function GeneratePage() {
       setGeneratedVideo(data);
       addVideo(data);
       toast.success('Video generation started! It will be ready in about a minute.');
-
-      // Poll for completion
       pollVideoStatus(data.id);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to generate video');
@@ -70,116 +89,196 @@ export default function GeneratePage() {
       }
     }, 3000);
 
-    // Stop polling after 5 minutes
     setTimeout(() => clearInterval(interval), 300000);
   };
 
-  return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary-500 to-purple-500 flex items-center justify-center text-2xl mb-4">
-          <FiZap size={28} />
-        </div>
-        <h1 className="text-3xl font-bold mb-2">Ask a Question</h1>
-        <p className="text-dark-400">Get an AI-generated educational video in seconds</p>
-      </div>
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'completed': return 'success';
+      case 'failed': return 'error';
+      default: return 'info';
+    }
+  };
 
-      {/* Input */}
-      <div className="card mb-8">
-        <div className="relative">
-          <textarea
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Type your question here... e.g., 'What is photosynthesis?'"
-            className="input-field min-h-[120px] resize-none pr-16 text-lg"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleGenerate();
-              }
-            }}
-          />
-          <button
-            onClick={handleGenerate}
-            disabled={generating || !question.trim()}
-            className="absolute bottom-4 right-4 w-12 h-12 rounded-xl bg-primary-600 hover:bg-primary-700 disabled:bg-dark-700 disabled:cursor-not-allowed flex items-center justify-center transition-all"
-          >
-            {generating ? (
-              <FiLoader className="animate-spin" size={20} />
-            ) : (
-              <FiSend size={20} />
-            )}
-          </button>
-        </div>
-        <p className="text-xs text-dark-500 mt-2">Press Enter to generate, Shift+Enter for new line</p>
-      </div>
+  return (
+    <Box sx={{ maxWidth: 720, mx: 'auto', px: { xs: 2, sm: 3 }, py: 4 }}>
+      {/* Header */}
+      <Box sx={{ textAlign: 'center', mb: 5 }}>
+        <Avatar
+          sx={{
+            width: 64,
+            height: 64,
+            mx: 'auto',
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+            mb: 2,
+          }}
+        >
+          <BoltRoundedIcon sx={{ fontSize: 28 }} />
+        </Avatar>
+        <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
+          Ask a Question
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          Get an AI-generated educational video in seconds
+        </Typography>
+      </Box>
+
+      {/* Input Card */}
+      <Card sx={{ mb: 4 }}>
+        <CardContent sx={{ p: 3, '&:last-child': { pb: 3 } }}>
+          <Box sx={{ position: 'relative' }}>
+            <TextField
+              fullWidth
+              multiline
+              minRows={3}
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="Type your question here... e.g., 'What is photosynthesis?'"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleGenerate();
+                }
+              }}
+              sx={{
+                '& .MuiInputBase-root': { pr: 7, fontSize: '1.1rem' },
+              }}
+            />
+            <IconButton
+              onClick={handleGenerate}
+              disabled={generating || !question.trim()}
+              sx={{
+                position: 'absolute',
+                bottom: 12,
+                right: 12,
+                width: 48,
+                height: 48,
+                borderRadius: 3,
+                bgcolor: 'primary.main',
+                color: 'white',
+                '&:hover': { bgcolor: 'primary.dark' },
+                '&.Mui-disabled': { bgcolor: alpha(theme.palette.text.primary, 0.08) },
+              }}
+            >
+              {generating ? <CircularProgress size={20} color="inherit" /> : <SendRoundedIcon />}
+            </IconButton>
+          </Box>
+          <Typography variant="caption" sx={{ color: 'text.disabled', mt: 1, display: 'block' }}>
+            Press Enter to generate, Shift+Enter for new line
+          </Typography>
+        </CardContent>
+      </Card>
 
       {/* Generated Video Status */}
       {generatedVideo && (
-        <div className="card mb-8 animate-slide-up">
-          <div className="flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-              generatedVideo.status === 'completed'
-                ? 'bg-green-500/20 text-green-400'
-                : generatedVideo.status === 'failed'
-                ? 'bg-red-500/20 text-red-400'
-                : 'bg-blue-500/20 text-blue-400'
-            }`}>
-              {generatedVideo.status === 'completed' ? (
-                <FiCheck size={24} />
-              ) : generatedVideo.status === 'failed' ? (
-                <span className="text-xl">✗</span>
-              ) : (
-                <FiLoader size={24} className="animate-spin" />
-              )}
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold">{generatedVideo.title}</h3>
-              <p className="text-sm text-dark-400">
-                {generatedVideo.status === 'completed'
-                  ? `Ready! Duration: ${generatedVideo.duration}s`
-                  : generatedVideo.status === 'failed'
-                  ? 'Generation failed. Try again.'
-                  : 'Generating your video...'}
-              </p>
-            </div>
-            {generatedVideo.status === 'completed' && (
-              <button
-                onClick={() => navigate('/feed', { state: { videoId: generatedVideo.id } })}
-                className="btn-primary flex items-center gap-2 text-sm"
+        <Card sx={{ mb: 4 }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 3,
+                  bgcolor: alpha(
+                    generatedVideo.status === 'completed'
+                      ? theme.palette.success.main
+                      : generatedVideo.status === 'failed'
+                      ? theme.palette.error.main
+                      : theme.palette.info.main,
+                    0.15
+                  ),
+                  color:
+                    generatedVideo.status === 'completed'
+                      ? 'success.main'
+                      : generatedVideo.status === 'failed'
+                      ? 'error.main'
+                      : 'info.main',
+                }}
               >
-                Watch <FiZap size={16} />
-              </button>
-            )}
-          </div>
+                {generatedVideo.status === 'completed' ? (
+                  <CheckCircleOutlineRoundedIcon />
+                ) : generatedVideo.status === 'failed' ? (
+                  <ErrorOutlineRoundedIcon />
+                ) : (
+                  <CircularProgress size={24} color="inherit" />
+                )}
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  {generatedVideo.title}
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  {generatedVideo.status === 'completed'
+                    ? `Ready! Duration: ${generatedVideo.duration}s`
+                    : generatedVideo.status === 'failed'
+                    ? 'Generation failed. Try again.'
+                    : 'Generating your video...'}
+                </Typography>
+              </Box>
+              {generatedVideo.status === 'completed' && (
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<PlayArrowRoundedIcon />}
+                  onClick={() => navigate('/feed', { state: { videoId: generatedVideo.id } })}
+                >
+                  Watch
+                </Button>
+              )}
+            </Box>
 
-          {/* Script preview */}
-          {generatedVideo.script && (
-            <div className="mt-4 p-4 bg-dark-800 rounded-xl">
-              <p className="text-xs text-dark-500 mb-2 font-semibold">GENERATED SCRIPT</p>
-              <p className="text-sm text-dark-300 leading-relaxed">{generatedVideo.script}</p>
-            </div>
-          )}
-        </div>
+            {generatedVideo.script && (
+              <Box
+                sx={{
+                  mt: 2,
+                  p: 2,
+                  borderRadius: 3,
+                  bgcolor: alpha(theme.palette.text.primary, 0.04),
+                }}
+              >
+                <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 700, letterSpacing: 1 }}>
+                  GENERATED SCRIPT
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1, lineHeight: 1.7 }}>
+                  {generatedVideo.script}
+                </Typography>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {/* Suggested Questions */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Try these questions</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <Box>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+          Try these questions
+        </Typography>
+        <Grid container spacing={1.5}>
           {SUGGESTED_QUESTIONS.map(({ emoji, q }) => (
-            <button
-              key={q}
-              onClick={() => setQuestion(q)}
-              className="flex items-center gap-3 p-4 bg-dark-900 hover:bg-dark-800 border border-dark-800 hover:border-primary-500/30 rounded-xl text-left transition-all duration-200"
-            >
-              <span className="text-2xl">{emoji}</span>
-              <span className="text-sm text-dark-300">{q}</span>
-            </button>
+            <Grid item xs={12} sm={6} key={q}>
+              <Card
+                onClick={() => setQuestion(q)}
+                sx={{
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    borderColor: alpha(theme.palette.primary.main, 0.3),
+                    bgcolor: alpha(theme.palette.primary.main, 0.04),
+                  },
+                }}
+              >
+                <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 2, '&:last-child': { pb: 2 } }}>
+                  <Typography sx={{ fontSize: '1.5rem' }}>{emoji}</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    {q}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
           ))}
-        </div>
-      </div>
-    </div>
+        </Grid>
+      </Box>
+    </Box>
   );
 }
