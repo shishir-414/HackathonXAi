@@ -6,7 +6,7 @@ import { useAuthStore } from '../store';
 import {
   FiArrowLeft, FiHeart, FiShare2, FiBookmark,
   FiChevronUp, FiChevronDown, FiCamera,
-  FiVolume2, FiVolumeX,
+  FiVolume2, FiVolumeX, FiType,
 } from 'react-icons/fi';
 import PracticalMode from './PracticalMode';
 
@@ -24,6 +24,7 @@ export default function VideoFeed() {
   const [duration, setDuration] = useState(0);
   const [subtitles, setSubtitles] = useState([]);
   const [currentSubtitle, setCurrentSubtitle] = useState('');
+  const [showSubtitles, setShowSubtitles] = useState(true);
   const [showPractical, setShowPractical] = useState(false);
   const [liked, setLiked] = useState({});
   const [saved, setSaved] = useState({});
@@ -338,7 +339,7 @@ export default function VideoFeed() {
         )}
 
         {/* Subtitle overlay */}
-        {currentSubtitle && (
+        {showSubtitles && currentSubtitle && (
           <div className="absolute bottom-36 left-0 right-0 z-20 text-center px-6">
             <div className="inline-block bg-black/60 backdrop-blur-md rounded-xl px-5 py-2.5 max-w-[90%]">
               <p className="text-white text-base font-medium leading-relaxed">{currentSubtitle}</p>
@@ -417,6 +418,21 @@ export default function VideoFeed() {
               {muted ? <FiVolumeX size={21} /> : <FiVolume2 size={21} />}
             </div>
             <span className="text-[10px] text-white/60">{muted ? 'Unmute' : 'Mute'}</span>
+          </button>
+
+          {/* Subtitles toggle */}
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowSubtitles((s) => !s); }}
+            className="flex flex-col items-center gap-1 transition-all"
+          >
+            <div className={`w-11 h-11 rounded-full backdrop-blur-md flex items-center justify-center transition-all ${
+              showSubtitles
+                ? 'bg-purple-500/30 text-purple-400 scale-110'
+                : 'bg-black/30 text-white/70 hover:text-purple-400'
+            }`}>
+              <FiType size={21} />
+            </div>
+            <span className="text-[10px] text-white/60">{showSubtitles ? 'CC On' : 'CC Off'}</span>
           </button>
 
           {/* Practical Mode */}

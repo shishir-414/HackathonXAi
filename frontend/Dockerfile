@@ -9,4 +9,4 @@ COPY . .
 
 EXPOSE 3000
 
-CMD ["vite", "dev", "--host"]
+CMD ["npm", "run", "dev"]
